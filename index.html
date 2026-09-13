@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bangladesh's Shifting Hazard Map: 26 Years of Climate Exposure</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">A Data Story</p>
+    <h1>Bangladesh's Shifting Hazard Map</h1>
+    <p class="subtitle">26 Years of Climate Exposure</p>
+    <p class="dek">District-level cyclone, flood, drought, river-level, and coastal-erosion data from 2000&ndash;2025.</p>
+
+    <div class="research-question">
+      <h2>Research Question</h2>
+      <p>Across cyclone exposure, flood impact, drought severity, river water level, and coastal erosion, which districts in Bangladesh show the most persistent compound climate-hazard vulnerability between 2000 and 2025, which individual hazard is the strongest driver nationally, and is there a measurable relationship between river water level and flood impact severity?</p>
+    </div>
+
+    <div class="limitations">
+      <strong>A note on limitations:</strong> Figures describe recorded hazard indicators, not damage or casualties. Missing district-year records are shown as "No data," never estimated. All relationships described are associative, not causal.
+    </div>
+  </div>
+</header>
+
+<section class="section" id="key-findings-section">
+  <div class="wrap">
+    <h2 class="section-title">Key Findings</h2>
+    <ul id="key-findings" class="findings-list">
+      <li class="loading">Computing findings from data&hellip;</li>
+    </ul>
+  </div>
+</section>
+
+<div id="load-error" class="load-error" style="display:none"></div>
+
+<section class="section" id="map-section">
+  <div class="wrap">
+    <h2 class="section-title">The Hazard Map</h2>
+    <p class="section-intro">Select a hazard and a year to see how its normalized exposure varies across Bangladesh's 53 districts. Click any district to inspect it in detail below.</p>
+
+    <div class="map-controls">
+      <label class="control">
+        <span>Hazard</span>
+        <select id="hazard-select">
+          <option value="Cyclone_Count">Cyclone Exposure</option>
+          <option value="Flood_Impact_Score" selected>Flood Impact</option>
+          <option value="Drought_Severity">Drought Severity</option>
+          <option value="River_Water_Level_m">River Water Level</option>
+          <option value="Coastal_Erosion_m_per_year">Coastal Erosion</option>
+        </select>
+      </label>
+
+      <div class="control year-control">
+        <span>Year: <strong id="year-label">2000</strong></span>
+        <div class="slider-row">
+          <button id="play-btn" aria-label="Play animation">&#9654;</button>
+          <input type="range" id="year-slider" min="2000" max="2025" value="2000" step="1">
+        </div>
+      </div>
+
+      <button id="clear-btn" class="control clear-btn">Clear Selection</button>
+    </div>
+
+    <div id="map" class="map"></div>
+    <div id="legend" class="legend"></div>
+
+    <div id="detail-panel" class="detail-panel empty">
+      <p class="panel-placeholder">Click a district on the map to see its detailed hazard profile.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="trends-section">
+  <div class="wrap">
+    <h2 class="section-title">National Hazard Trends</h2>
+    <p class="section-intro">National average normalized exposure per year for each hazard, split into three eras: 2000&ndash;2008, 2009&ndash;2016, 2017&ndash;2025. Circled points mark anomaly years (&gt;1.5 standard deviations from the 26-year mean).</p>
+    <div id="trend-charts" class="chart-grid"></div>
+  </div>
+</section>
+
+<section class="section" id="distributions-section">
+  <div class="wrap">
+    <h2 class="section-title">Hazard Distributions</h2>
+    <p class="section-intro">Kernel density estimate of each hazard's normalized values across all district-years. The dashed line marks 0.6, a reference threshold for "high exposure." Selecting a district on the map overlays its value for the current year.</p>
+    <div id="density-charts" class="chart-grid"></div>
+  </div>
+</section>
+
+<section class="section" id="correlation-section">
+  <div class="wrap">
+    <h2 class="section-title">River Water Level vs. Flood Impact</h2>
+    <p class="section-intro">Each point is one district-year. Values are normalized (0&ndash;1).</p>
+    <div id="scatter-chart" class="scatter-wrap"></div>
+    <p id="correlation-text" class="correlation-text"></p>
+
+    <div class="reference-maps">
+      <div class="reference-map-col">
+        <h3>River Water Level</h3>
+        <div id="ref-map-river" class="mini-map"></div>
+        <div id="ref-legend-river" class="legend small"></div>
+      </div>
+      <div class="reference-map-col">
+        <h3>Flood Impact</h3>
+        <div id="ref-map-flood" class="mini-map"></div>
+        <div id="ref-legend-flood" class="legend small"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="rankings-section">
+  <div class="wrap">
+    <h2 class="section-title">Most Frequently High-Exposure Districts</h2>
+    <p class="section-intro">Top 5 districts by number of years (out of 26) with normalized exposure &ge; 0.6, for each hazard.</p>
+    <div id="rankings-grid" class="rankings-grid"></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>Data: assets/data.csv &middot; assets/bangladesh.geojson. Built with Leaflet.js and D3.js.</p>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/map.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
